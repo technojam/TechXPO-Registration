@@ -1,0 +1,70 @@
+[
+  {
+    "id": "d49ecc96-2018-4b14-8e36-6cacc5bffd89",
+    "title": "Dexterix 5.0",
+    "description": "Dexterix is an annual 36-hour offline hackathon uniting innovative students in a collaborative environment. Participants ideate, build, and present technology-driven solutions addressing real-world challenges, fostering creativity, teamwork, problem-solving skills, and impactful innovation through intensive hands-on development and peer learning experiences.\n",
+    "startDate": "2026-01-24",
+    "endDate": "2026-01-25",
+    "startTime": "09:00",
+    "endTime": "18:00",
+    "location": "Galgotias University",
+    "mapUrl": "https://maps.app.goo.gl/aj9pZNQ7M6roP2NY9",
+    "imageUrl": "",
+    "paymentQrUrl": "",
+    "maxRegistrations": 120,
+    "registrationDeadline": "2026-01-20T12:59",
+    "customQuestions": [
+      {
+        "id": "7401c9af-a4aa-4ffe-9088-73ecf9b440dd",
+        "text": "Name",
+        "type": "text",
+        "required": true
+      },
+      {
+        "id": "a95ff97a-5c34-473d-9f47-0249bea0c7d0",
+        "text": "Email",
+        "type": "text",
+        "required": true
+      },
+      {
+        "id": "c3684613-6244-4af7-abab-a0938fbf6760",
+        "text": "Phone Number",
+        "type": "text",
+        "required": true
+      },
+      {
+        "id": "b232b745-eb7b-4542-ab46-410c2b7238aa",
+        "text": "College/University",
+        "type": "text",
+        "required": true
+      },
+      {
+        "id": "91348903-7409-4a7f-94d3-74da9e365880",
+        "text": "Admission Number",
+        "type": "text",
+        "required": true
+      },
+      {
+        "id": "ce1f4bad-e892-4d12-89d8-246b090fa5db",
+        "text": "Team Leader",
+        "type": "text",
+        "required": true,
+        "scope": "team"
+      },
+      {
+        "id": "b2b1f508-8089-4701-8345-6b5cf7e5f658",
+        "text": "Team Name",
+        "type": "text",
+        "required": true,
+        "scope": "team"
+      }
+    ],
+    "registrations": [],
+    "isPaused": false,
+    "paymentInstructions": "",
+    "isTeamEvent": true,
+    "minTeamSize": "4",
+    "maxTeamSize": "4",
+    "category": "Hackathon"
+  }
+]

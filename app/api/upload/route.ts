@@ -1,0 +1,29 @@
+import { NextResponse } from 'next/server';
+import { containerClient } from '@/lib/azure';
+import { v4 as uuidv4 } from 'uuid';
+
+export async function POST(request: Request) {
+  const formData = await request.formData();
+  const file = formData.get('file') as File;
+
+  if (!file) {
+    return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
+  }
+
+  const buffer = await file.arrayBuffer();
+  const filename = `${uuidv4()}-${file.name.replace(/\s/g, '-')}`;
+  
+  try {
+    const blockBlobClient = containerClient.getBlockBlobClient(filename);
+    await blockBlobClient.uploadData(buffer, {
+      blobHTTPHeaders: { blobContentType: file.type }
+    });
+    
+    // Return the URL
+    // Ensure the container has public access enabled in Azure Portal
+    return NextResponse.json({ url: blockBlobClient.url });
+  } catch (error) {
+    console.error('Error uploading file to Azure:', error);
+    return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
+  }
+}

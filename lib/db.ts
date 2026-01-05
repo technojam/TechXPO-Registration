@@ -1,0 +1,199 @@
+import { container, initCosmos } from './cosmos';
+import { deleteFileFromUrl } from './azure';
+import { PatchOperation } from '@azure/cosmos';
+
+export interface Event {
+  id: string;
+  title: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  startTime?: string;
+  endTime?: string;
+  location: string;
+  mapUrl?: string;
+  imageUrl?: string;
+  paymentQrUrl?: string;
+  paymentInstructions?: string;
+  maxRegistrations?: number;
+  registrationDeadline?: string;
+  isPaused?: boolean;
+  category?: 'Hackathon' | 'Event' | 'Workshop';
+  isTeamEvent?: boolean;
+  minTeamSize?: number;
+  maxTeamSize?: number;
+  customQuestions?: CustomQuestion[];
+  registrations: Registration[];
+}
+
+export interface CustomQuestion {
+  id: string;
+  text: string;
+  type: 'text' | 'select';
+  options?: string[];
+  required: boolean;
+  scope?: 'team' | 'member';
+}
+
+export interface Registration {
+  id: string;
+  name?: string;
+  email?: string;
+  teamName?: string;
+  paymentProofUrl?: string;
+  answers?: Record<string, string>;
+  members?: {
+    name?: string;
+    email?: string;
+    answers: Record<string, string>;
+  }[];
+}
+
+export async function getEvents(): Promise<Event[]> {
+  try {
+    await initCosmos();
+    const { resources } = await container.items
+      .query("SELECT * from c")
+      .fetchAll();
+    return resources as Event[];
+  } catch (error) {
+    console.error("Error fetching events:", error);
+    return [];
+  }
+}
+
+export async function getEventById(id: string): Promise<Event | undefined> {
+  try {
+    await initCosmos();
+    const { resource } = await container.item(id, id).read();
+    return resource as Event;
+  } catch (error) {
+    console.error(`Error fetching event ${id}:`, error);
+    return undefined;
+  }
+}
+
+export async function addEvent(event: Event): Promise<void> {
+  try {
+    await initCosmos();
+    const { id, ...rest } = event;
+    // Ensure ID is set for partition key
+    await container.items.create({
+       id: id,
+       ...rest,
+       registrations: []
+    });
+  } catch (error) {
+    console.error("Error adding event:", error);
+    throw error;
+  }
+}
+
+export async function updateEvent(updatedEvent: Event): Promise<boolean> {
+  try {
+    await initCosmos();
+    // Cosmos DB requires the partition key (id) for updates
+    await container.item(updatedEvent.id, updatedEvent.id).replace(updatedEvent);
+    return true;
+  } catch (error) {
+    console.error("Error updating event:", error);
+    return false;
+  }
+}
+
+export async function deleteEvent(id: string): Promise<boolean> {
+  try {
+    await initCosmos();
+
+    // 1. Fetch event to get file URLs
+    const event = await getEventById(id);
+    if (event) {
+      const filesToDelete: string[] = [];
+      
+      if (event.imageUrl) filesToDelete.push(event.imageUrl);
+      if (event.paymentQrUrl) filesToDelete.push(event.paymentQrUrl);
+      
+      if (event.registrations && event.registrations.length > 0) {
+        event.registrations.forEach(reg => {
+          if (reg.paymentProofUrl) filesToDelete.push(reg.paymentProofUrl);
+        });
+      }
+
+      // 2. Delete all associated files from Azure Storage
+      await Promise.all(filesToDelete.map(url => deleteFileFromUrl(url)));
+    }
+
+    // 3. Delete the event document
+    await container.item(id, id).delete();
+    return true;
+  } catch (error) {
+    console.error("Error deleting event:", error);
+    return false;
+  }
+}
+
+export async function addRegistration(eventId: string, registration: Registration): Promise<{ success: boolean; error?: string }> {
+  try {
+    await initCosmos();
+    // Reading the item first to check constraints
+    const { resource: event } = await container.item(eventId, eventId).read<Event>();
+    
+    if (!event) {
+       return { success: false, error: 'Event not found' };
+    }
+
+    const currentRegistrations = event.registrations || [];
+    if (event.maxRegistrations && currentRegistrations.length >= event.maxRegistrations) {
+      return { success: false, error: 'Event is full' };
+    }
+
+    // Since Cosmos DB items are documents, we can just push to the array and replace,
+    // or use Patch API for better atomicity.
+    
+    // Using Patch API to append to the registrations array
+    // Note: Cosmos DB Patch operations
+    const operations: PatchOperation[] = [
+      { op: 'add', path: '/registrations/-', value: registration }
+    ];
+
+    // If registratons array doesn't exist, we might need to initialize it first or use a conditional patch.
+    // However, our data model ensures it exists on creation.
+    
+    await container.item(eventId, eventId).patch(operations);
+
+    return { success: true };
+  } catch (error: any) {
+    console.error("Error adding registration:", error);
+    return { success: false, error: 'System busy or error occurred' };
+  }
+}
+
+export async function deleteRegistration(eventId: string, registrationId: string): Promise<boolean> {
+  try {
+    await initCosmos();
+    const event = await getEventById(eventId);
+    if (!event || !event.registrations) return false;
+
+    const registration = event.registrations.find(r => r.id === registrationId);
+    if (!registration) return false;
+
+    // 1. Delete payment proof if exists
+    if (registration.paymentProofUrl) {
+      await deleteFileFromUrl(registration.paymentProofUrl);
+    }
+
+    // 2. Remove registration from array using filter
+    const updatedRegistrations = event.registrations.filter(r => r.id !== registrationId);
+    
+    // 3. Update the event document
+    // We update the whole document or patch just the registrations array. 
+    // Replacing is often safer for array filtering than complex patch indices.
+    event.registrations = updatedRegistrations;
+    await container.item(eventId, eventId).replace(event);
+
+    return true;
+  } catch (error) {
+    console.error("Error deleting registration:", error);
+    return false;
+  }
+}
