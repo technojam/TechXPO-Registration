@@ -186,7 +186,16 @@ export default function EventDetails({ params }: { params: Promise<{ id: string 
       if (uploadRes.ok) {
         const data = await uploadRes.json();
         paymentProofUrl = data.url;
+      } else {
+        alert('Failed to upload payment proof. Please try again.');
+        setRegistering(false);
+        return;
       }
+    } else {
+        // Should be caught by validation, but double check
+        alert('Please upload a payment proof screenshot.');
+        setRegistering(false);
+        return;
     }
 
     let payload = {};
