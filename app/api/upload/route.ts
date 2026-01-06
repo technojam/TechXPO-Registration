@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { containerClient } from '@/lib/azure';
 import { v4 as uuidv4 } from 'uuid';
+import sharp from 'sharp';
 
 export async function POST(request: Request) {
   const formData = await request.formData();
@@ -22,13 +23,28 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Only image files (JPEG, PNG, WEBP, GIF) are allowed' }, { status: 400 });
   }
 
-  const buffer = await file.arrayBuffer();
-  const filename = `${uuidv4()}-${file.name.replace(/\s/g, '-')}`;
+  const arrayBuffer = await file.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+  
+  // Convert to WebP
+  let webpBuffer: Buffer;
+  try {
+    webpBuffer = await sharp(buffer)
+      .webp({ quality: 80 }) // Compress with decent quality
+      .toBuffer();
+  } catch (error) {
+    console.error('Error converting image to WebP:', error);
+    return NextResponse.json({ error: 'Image processing failed' }, { status: 500 });
+  }
+
+  // Generate new filename with .webp extension
+  const originalNameWithoutExt = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
+  const filename = `${uuidv4()}-${originalNameWithoutExt.replace(/\s/g, '-')}.webp`;
   
   try {
     const blockBlobClient = containerClient.getBlockBlobClient(filename);
-    await blockBlobClient.uploadData(buffer, {
-      blobHTTPHeaders: { blobContentType: file.type }
+    await blockBlobClient.uploadData(webpBuffer, {
+      blobHTTPHeaders: { blobContentType: 'image/webp' }
     });
     
     // Return the URL

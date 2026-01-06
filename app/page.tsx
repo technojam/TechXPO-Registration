@@ -11,7 +11,7 @@ export default async function Home() {
     <div className="container mx-auto p-4 md:p-8">
       <div className="text-center mb-8 md:mb-12">
         <div className="flex justify-center mb-4">
-          <img src="/logo.png" alt="TechXpo 2026" className="h-24 md:h-32" />
+          <img src="/logo.webp" alt="TechXpo 2026" className="h-24 md:h-32" />
         </div>
         <p className="text-lg md:text-xl text-emerald-200/70">Join us for the biggest tech fest of the year!</p>
       </div>

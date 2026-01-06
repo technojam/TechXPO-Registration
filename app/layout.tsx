@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   title: "TechXpo Registration",
   description: "Event registration platform for TechXpo",
   icons: {
-    icon: '/logo.png',
+    icon: '/logo.webp',
   },
 };
 

@@ -5,7 +5,7 @@ export default function Navbar() {
     <nav className="bg-emerald-950 text-emerald-50 p-4 border-b border-emerald-900">
       <div className="container mx-auto flex justify-between items-center">
         <Link href="/" className="text-2xl font-bold text-emerald-400 shrink-0">
-          <img src="/logo.png" alt="TechXpo" className="h-10 w-auto object-contain" />
+          <img src="/logo.webp" alt="TechXpo" className="h-10 w-auto object-contain" />
         </Link>
         <div className="flex items-center gap-4">
           <Link 
