@@ -134,9 +134,19 @@ export default function EventRegistrations({ params }: { params: Promise<{ id: s
       return;
     }
 
+    const user = auth.currentUser;
+    if (!user) {
+      alert('You must be logged in to delete registrations.');
+      return;
+    }
+
     try {
+      const token = await user.getIdToken();
       const res = await fetch(`/api/events/${id}/registrations/${regId}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
 
       if (res.ok) {
