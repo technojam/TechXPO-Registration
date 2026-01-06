@@ -107,8 +107,7 @@ export default function EditEvent({ params }: { params: Promise<{ id: string }> 
       }
     };
 
-    fetchEvent();
-  }, [id, router]);
+
 
   const addQuestion = () => {
     if (newQuestionText.trim()) {
@@ -162,7 +161,13 @@ export default function EditEvent({ params }: { params: Promise<{ id: string }> 
         method: 'POST',
         body: uploadFormData,
       });
-      if (user = auth.currentUser;
+      if (uploadRes.ok) {
+        const data = await uploadRes.json();
+        imageUrl = data.url;
+      }
+    }
+
+    const user = auth.currentUser;
     if (!user) {
       alert('You must be logged in to update an event');
       setSaving(false);
@@ -175,25 +180,6 @@ export default function EditEvent({ params }: { params: Promise<{ id: string }> 
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
-    }
-
-    if (paymentQrImage) {
-      const uploadFormData = new FormData();
-      uploadFormData.append('file', paymentQrImage);
-      const uploadRes = await fetch('/api/upload', {
-        method: 'POST',
-        body: uploadFormData,
-      });
-      if (uploadRes.ok) {
-        const data = await uploadRes.json();
-        paymentQrUrl = data.url;
-      }
-    }
-
-    const res = await fetch(`/api/events/${id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         ...formData,

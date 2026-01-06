@@ -18,6 +18,6 @@ export const eventSchema = z.object({
   isTeamEvent: z.boolean().optional(),
   minTeamSize: z.coerce.number().optional(),
   maxTeamSize: z.coerce.number().optional(),
-  category: z.string().optional(),
+  category: z.enum(['Hackathon', 'Event', 'Workshop']).optional(),
   isPaused: z.boolean().optional(), // Added for PUT requests (togglePause)
 });

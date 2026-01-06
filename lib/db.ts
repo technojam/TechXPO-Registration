@@ -45,7 +45,7 @@ export interface Registration {
   members?: {
     name?: string;
     email?: string;
-    answers: Record<string, string>;
+    answers?: Record<string, string>;
   }[];
 }
 
