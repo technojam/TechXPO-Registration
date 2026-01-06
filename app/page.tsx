@@ -18,17 +18,21 @@ export default async function Home() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {events.map((event) => (
-          <div key={event.id} className="border border-emerald-800 rounded-lg overflow-hidden shadow-lg hover:shadow-emerald-900/50 transition-all bg-emerald-900/30 text-emerald-50 backdrop-blur-sm">
-            {event.imageUrl && (
+          <div key={event.id} className="border border-emerald-800 rounded-lg overflow-hidden shadow-lg hover:shadow-emerald-900/50 transition-all bg-emerald-900/30 text-emerald-50 backdrop-blur-sm flex flex-col h-full">
+            {event.imageUrl ? (
               <img
                 src={event.imageUrl}
                 alt={event.title}
                 className="w-full h-48 object-cover"
               />
+            ) : (
+               <div className="w-full h-48 bg-emerald-800/30 flex items-center justify-center border-b border-emerald-800/50">
+                  <span className="text-emerald-500/50 font-bold text-xl uppercase tracking-widest">{event.category || 'TechXpo'}</span>
+               </div>
             )}
-            <div className="p-6">
+            <div className="p-6 flex flex-col flex-grow">
               {event.category && (
-                <span className="inline-block px-2 py-1 mb-2 text-xs font-semibold text-emerald-900 bg-emerald-200 rounded-full">
+                <span className="inline-block px-2 py-1 mb-2 text-xs font-semibold text-emerald-900 bg-emerald-200 rounded-full self-start">
                   {event.category}
                 </span>
               )}
@@ -55,12 +59,14 @@ export default async function Home() {
                   <span>{event.location}</span>
                 )}
               </div>
-              <Link
-                href={`/events/${event.id}`}
-                className="block w-full text-center bg-emerald-600 text-white py-2 rounded hover:bg-emerald-500 transition-colors font-medium"
-              >
-                View Details & Register
-              </Link>
+              <div className="mt-auto">
+                <Link
+                  href={`/events/${event.id}`}
+                  className="block w-full text-center bg-emerald-600 text-white py-2 rounded hover:bg-emerald-500 transition-colors font-medium"
+                >
+                  View Details & Register
+                </Link>
+              </div>
             </div>
           </div>
         ))}

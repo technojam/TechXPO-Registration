@@ -327,12 +327,16 @@ export default function EventDetails({ params }: { params: Promise<{ id: string 
         &larr; Back to Events
       </Link>
       <div className="max-w-4xl mx-auto bg-emerald-900/30 backdrop-blur-sm border border-emerald-800 rounded-lg shadow-lg overflow-hidden text-emerald-50">
-        {event.imageUrl && (
+        {event.imageUrl ? (
           <img
             src={event.imageUrl}
             alt={event.title}
             className="w-full h-48 md:h-64 object-cover"
           />
+        ) : (
+            <div className="w-full h-48 md:h-64 bg-emerald-800/30 flex items-center justify-center border-b border-emerald-800/50">
+                   <h1 className="text-4xl md:text-6xl font-bold text-emerald-700/30 uppercase tracking-widest">{event.category || 'EVENT'}</h1>
+            </div>
         )}
         <div className="p-4 md:p-8">
           {event.category && (
@@ -509,21 +513,26 @@ export default function EventDetails({ params }: { params: Promise<{ id: string 
 
                   {/* Payment Section */}
                   <div>
-                    {event.paymentQrUrl && (
-                      <div className="mb-6">
-                        <h3 className="text-lg font-semibold mb-2 text-emerald-200">Scan to Pay</h3>
+                    <div className="mb-6">
+                      <h3 className="text-lg font-semibold mb-2 text-emerald-200">Scan to Pay</h3>
+                      {event.paymentQrUrl ? (
                         <img
                           src={event.paymentQrUrl}
                           alt="Payment QR Code"
                           className="w-80 h-80 object-contain border border-emerald-700 rounded bg-white p-2 mb-2"
                         />
-                        {event.paymentInstructions && (
-                          <p className="text-emerald-200/90 text-sm whitespace-pre-wrap bg-emerald-900/30 p-3 rounded border border-emerald-800">
-                            {event.paymentInstructions}
-                          </p>
-                        )}
-                      </div>
-                    )}
+                      ) : (
+                        <div className="w-80 h-80 border border-emerald-700 rounded bg-emerald-900/50 flex items-center justify-center p-2 mb-2">
+                             <span className="text-emerald-400 text-center px-4 font-bold">QR CODE COMING SOON</span>
+                         </div>
+                      )}
+                      
+                      {event.paymentInstructions && (
+                        <p className="text-emerald-200/90 text-sm whitespace-pre-wrap bg-emerald-900/30 p-3 rounded border border-emerald-800">
+                          {event.paymentInstructions}
+                        </p>
+                      )}
+                    </div>
 
                     <div>
                       <label className="block mb-1 font-medium text-emerald-100">Payment Proof (Screenshot) <span className="text-red-400">*</span></label>
@@ -588,21 +597,25 @@ export default function EventDetails({ params }: { params: Promise<{ id: string 
                     </div>
                   ))}
 
-                  {event.paymentQrUrl && (
-                    <div className="mb-6">
-                      <h3 className="text-lg font-semibold mb-2 text-emerald-200">Scan to Pay</h3>
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold mb-2 text-emerald-200">Scan to Pay</h3>
+                    {event.paymentQrUrl ? (
                       <img
                         src={event.paymentQrUrl}
                         alt="Payment QR Code"
                         className="w-80 h-80 object-contain border border-emerald-700 rounded bg-white p-2 mb-2"
                       />
-                      {event.paymentInstructions && (
-                        <p className="text-emerald-200/90 text-sm whitespace-pre-wrap bg-emerald-900/30 p-3 rounded border border-emerald-800">
-                          {event.paymentInstructions}
-                        </p>
-                      )}
-                    </div>
-                  )}
+                    ) : (
+                      <div className="w-80 h-80 border border-emerald-700 rounded bg-emerald-900/50 flex items-center justify-center p-2 mb-2">
+                           <span className="text-emerald-400 text-center px-4 font-bold">QR CODE COMING SOON</span>
+                       </div>
+                    )}
+                    {event.paymentInstructions && (
+                      <p className="text-emerald-200/90 text-sm whitespace-pre-wrap bg-emerald-900/30 p-3 rounded border border-emerald-800">
+                        {event.paymentInstructions}
+                      </p>
+                    )}
+                  </div>
 
                   <div>
                     <label className="block mb-1 font-medium text-emerald-100">Payment Proof (Screenshot) <span className="text-red-400">*</span></label>
