@@ -24,7 +24,7 @@ export async function verifyBackendToken(request: Request) {
     const authHeader = request.headers.get('Authorization');
     
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      throw new Error('No valid token found');
+      return null;
     }
 
     const token = authHeader.split('Bearer ')[1];
