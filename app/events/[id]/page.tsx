@@ -267,8 +267,14 @@ export default function EventDetails({ params }: { params: Promise<{ id: string 
     if (res.ok) {
       setShowSuccessModal(true);
     } else {
-      const data = await res.json();
-      alert(data.error || 'Registration failed');
+      const errorText = await res.text();
+      try {
+        const data = JSON.parse(errorText);
+        alert(data.error || 'Registration failed');
+      } catch (e) {
+        console.error('Registration failed with non-JSON response:', errorText);
+        alert('Registration failed. Please try again later.');
+      }
     }
     setRegistering(false);
   };

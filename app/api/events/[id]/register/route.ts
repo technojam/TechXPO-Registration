@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { addRegistration, Registration, getEventById } from '@/lib/db';
 import { v4 as uuidv4 } from 'uuid';
+import { registrationSchema } from '@/lib/registrationSchema';
 
 export async function POST(
   request: Request,
@@ -8,7 +9,14 @@ export async function POST(
 ) {
   const { id } = await params;
   const body = await request.json();
-  const { name, email, teamName, paymentProofUrl, answers, members } = body;
+
+  // Validate Input
+  const parseResult = registrationSchema.safeParse(body);
+  if (!parseResult.success) {
+    return NextResponse.json({ error: parseResult.error.errors[0].message }, { status: 400 });
+  }
+
+  const { name, email, teamName, paymentProofUrl, answers, members } = parseResult.data;
 
   const event = await getEventById(id);
   if (!event) {
