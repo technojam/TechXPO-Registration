@@ -102,6 +102,10 @@ export default function CreateEvent() {
       if (uploadRes.ok) {
         const data = await uploadRes.json();
         imageUrl = data.url;
+      } else {
+        alert('Failed to upload Header Image');
+        setLoading(false);
+        return;
       }
     }
 
@@ -115,6 +119,10 @@ export default function CreateEvent() {
       if (uploadRes.ok) {
         const data = await uploadRes.json();
         paymentQrUrl = data.url;
+      } else {
+        alert('Failed to upload Payment QR image');
+        setLoading(false);
+        return;
       }
     }
 

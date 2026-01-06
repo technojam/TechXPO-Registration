@@ -506,7 +506,7 @@ export default function EventDetails({ params }: { params: Promise<{ id: string 
                         <img
                           src={event.paymentQrUrl}
                           alt="Payment QR Code"
-                          className="w-48 h-48 object-contain border border-emerald-700 rounded bg-white p-2 mb-2"
+                          className="w-80 h-80 object-contain border border-emerald-700 rounded bg-white p-2 mb-2"
                         />
                         {event.paymentInstructions && (
                           <p className="text-emerald-200/90 text-sm whitespace-pre-wrap bg-emerald-900/30 p-3 rounded border border-emerald-800">
@@ -585,7 +585,7 @@ export default function EventDetails({ params }: { params: Promise<{ id: string 
                       <img
                         src={event.paymentQrUrl}
                         alt="Payment QR Code"
-                        className="w-48 h-48 object-contain border border-emerald-700 rounded bg-white p-2 mb-2"
+                        className="w-80 h-80 object-contain border border-emerald-700 rounded bg-white p-2 mb-2"
                       />
                       {event.paymentInstructions && (
                         <p className="text-emerald-200/90 text-sm whitespace-pre-wrap bg-emerald-900/30 p-3 rounded border border-emerald-800">

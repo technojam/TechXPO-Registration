@@ -164,6 +164,27 @@ export default function EditEvent({ params }: { params: Promise<{ id: string }> 
       if (uploadRes.ok) {
         const data = await uploadRes.json();
         imageUrl = data.url;
+      } else {
+        alert('Failed to upload Header Image');
+        setSaving(false);
+        return;
+      }
+    }
+
+    if (paymentQrImage) {
+      const uploadFormData = new FormData();
+      uploadFormData.append('file', paymentQrImage);
+      const uploadRes = await fetch('/api/upload', {
+        method: 'POST',
+        body: uploadFormData,
+      });
+      if (uploadRes.ok) {
+        const data = await uploadRes.json();
+        paymentQrUrl = data.url;
+      } else {
+        alert('Failed to upload Payment QR image');
+        setSaving(false);
+        return;
       }
     }
 
@@ -352,7 +373,7 @@ export default function EditEvent({ params }: { params: Promise<{ id: string }> 
             <label className="block mb-1 font-medium text-emerald-100">Payment QR Code</label>
             {existingPaymentQrUrl && (
               <div className="mb-2">
-                <img src={existingPaymentQrUrl} alt="Current QR" className="h-20 object-contain rounded bg-white p-1" />
+                <img src={existingPaymentQrUrl} alt="Current QR" className="h-64 object-contain rounded bg-white p-1" />
                 <p className="text-xs text-emerald-300 mt-1">Current QR</p>
               </div>
             )}
