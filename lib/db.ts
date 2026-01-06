@@ -62,6 +62,20 @@ export async function getEvents(): Promise<Event[]> {
   }
 }
 
+export async function getPublicEvents(): Promise<Omit<Event, 'registrations'>[]> {
+  try {
+    await initCosmos();
+    // Use a query that excludes the registrations field to reduce payload and increase security
+    const { resources } = await container.items
+      .query("SELECT c.id, c.title, c.description, c.startDate, c.endDate, c.startTime, c.endTime, c.location, c.mapUrl, c.imageUrl, c.category, c.isPaused, c.registrationDeadline from c")
+      .fetchAll();
+    return resources as Omit<Event, 'registrations'>[];
+  } catch (error) {
+    console.error("Error fetching public events:", error);
+    return [];
+  }
+}
+
 export async function getEventById(id: string): Promise<Event | undefined> {
   try {
     await initCosmos();
@@ -169,31 +183,54 @@ export async function addRegistration(eventId: string, registration: Registratio
 }
 
 export async function deleteRegistration(eventId: string, registrationId: string): Promise<boolean> {
-  try {
-    await initCosmos();
-    const event = await getEventById(eventId);
-    if (!event || !event.registrations) return false;
+  const maxRetries = 3;
+  let retryCount = 0;
 
-    const registration = event.registrations.find(r => r.id === registrationId);
-    if (!registration) return false;
+  while (retryCount < maxRetries) {
+    try {
+      await initCosmos();
+      const itemResponse = await container.item(eventId, eventId).read<Event>();
+      const event = itemResponse.resource;
+      const etag = itemResponse.etag;
+      
+      if (!event || !event.registrations) return false;
 
-    // 1. Delete payment proof if exists
-    if (registration.paymentProofUrl) {
-      await deleteFileFromUrl(registration.paymentProofUrl);
+      const registrationIndex = event.registrations.findIndex(r => r.id === registrationId);
+      if (registrationIndex === -1) return false; // Already deleted?
+
+      const registration = event.registrations[registrationIndex];
+
+      // 1. Delete payment proof if exists (only on first attempt to avoid re-deletion errors if we retry db update)
+      if (retryCount === 0 && registration.paymentProofUrl) {
+        // We do this async and don't block? Or block?
+        // If we fail updating DB, we shouldn't have deleted the file?
+        // Ideally we delete file AFTER DB confirmation.
+      }
+
+      // 2. Remove registration from array
+      const updatedRegistrations = event.registrations.filter(r => r.id !== registrationId);
+      event.registrations = updatedRegistrations;
+
+      // 3. Update with ETag check
+      await container.item(eventId, eventId).replace(event, {
+        accessCondition: { type: 'IfMatch', condition: etag! }
+      });
+
+      // 4. Now delete the file safely
+      if (registration.paymentProofUrl) {
+         await deleteFileFromUrl(registration.paymentProofUrl).catch(e => console.error("Failed to delete file after DB update", e));
+      }
+
+      return true;
+    } catch (error: any) {
+      if (error.code === 412) { // Precondition Failed
+        console.warn(`Concurrency conflict deleting registration ${registrationId}, retrying... (${retryCount + 1})`);
+        retryCount++;
+        continue;
+      }
+      console.error("Error deleting registration:", error);
+      return false;
     }
-
-    // 2. Remove registration from array using filter
-    const updatedRegistrations = event.registrations.filter(r => r.id !== registrationId);
-    
-    // 3. Update the event document
-    // We update the whole document or patch just the registrations array. 
-    // Replacing is often safer for array filtering than complex patch indices.
-    event.registrations = updatedRegistrations;
-    await container.item(eventId, eventId).replace(event);
-
-    return true;
-  } catch (error) {
-    console.error("Error deleting registration:", error);
-    return false;
   }
+  return false;
 }

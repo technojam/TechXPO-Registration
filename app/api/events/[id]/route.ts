@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getEventById, updateEvent, deleteEvent, Event } from '@/lib/db';
-import { containerClient } from '@/lib/azure';
+import { containerClient, generateSasUrl } from '@/lib/azure';
 import { verifyBackendToken } from '@/lib/firebase-admin';
 import { eventSchema } from '@/lib/schemas';
 
@@ -24,8 +24,16 @@ export async function GET(
     return NextResponse.json(publicEvent);
   }
 
-  // Admin User: Return full data
-  return NextResponse.json(event);
+  // Admin User: Return full data with SAS tokens for secure images
+  const registrationsWithSas = event.registrations.map(reg => ({
+    ...reg,
+    paymentProofUrl: reg.paymentProofUrl ? generateSasUrl(reg.paymentProofUrl) : '',
+  }));
+
+  return NextResponse.json({
+    ...event,
+    registrations: registrationsWithSas
+  });
 }
 
 export async function PUT(

@@ -1,11 +1,11 @@
 import Link from 'next/link';
 import { Calendar, MapPin } from 'lucide-react';
-import { getEvents } from '@/lib/db';
+import { getPublicEvents } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
 export default async function Home() {
-  const events = await getEvents();
+  const events = await getPublicEvents();
 
   return (
     <div className="container mx-auto p-4 md:p-8">
