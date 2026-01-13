@@ -375,6 +375,7 @@ export default function EditEvent({ params }: { params: Promise<{ id: string }> 
               onChange={(e) => setImage(e.target.files?.[0] || null)}
               className="w-full p-2 border border-emerald-700 rounded text-emerald-50 bg-emerald-900/50 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100"
             />
+            <p className="text-xs text-emerald-400 mt-1">Supported formats: JPEG, PNG, WebP, GIF</p>
           </div>
           <div>
             <label className="block mb-1 font-medium text-emerald-100">Payment QR Code</label>
@@ -396,6 +397,7 @@ export default function EditEvent({ params }: { params: Promise<{ id: string }> 
               onChange={(e) => setPaymentQrImage(e.target.files?.[0] || null)}
               className="w-full p-2 border border-emerald-700 rounded text-emerald-50 bg-emerald-900/50 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100"
             />
+            <p className="text-xs text-emerald-400 mt-1">Supported formats: JPEG, PNG, WebP, GIF</p>
           </div>
           <div>
             <label className="block mb-1 font-medium text-emerald-100">Payment Instructions / Text below QR</label>
