@@ -13,14 +13,14 @@ export async function POST(request: Request) {
 
   // Security Validation
   const MAX_SIZE = 5 * 1024 * 1024; // 5MB
-  const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'image/heif'];
+  const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
   if (file.size > MAX_SIZE) {
     return NextResponse.json({ error: 'File size exceeds 5MB limit' }, { status: 400 });
   }
 
   if (!ALLOWED_TYPES.includes(file.type)) {
-    return NextResponse.json({ error: 'Only image files (JPEG, PNG, WEBP, GIF, HEIC) are allowed' }, { status: 400 });
+    return NextResponse.json({ error: 'Only image files (JPEG, PNG, WEBP, GIF) are allowed' }, { status: 400 });
   }
 
   const arrayBuffer = await file.arrayBuffer();
