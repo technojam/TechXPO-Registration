@@ -399,7 +399,7 @@ export default function EventDetails({ params }: { params: Promise<{ id: string 
                            </div>
                         ) : (
                           <div className="flex flex-wrap gap-2">
-                            {Array.from({ length: (Number(event.maxTeamSize) || 4) - (Number(event.minTeamSize) || 1) + 1 }, (_, i) => (Number(event.minTeamSize) || 1) + i).map(num => (
+                            {Array.from({ length: (Number(event.maxTeamSize) || 15) - (Number(event.minTeamSize) || 1) + 1 }, (_, i) => (Number(event.minTeamSize) || 1) + i).map(num => (
                               <button
                                 key={num}
                                 type="button"

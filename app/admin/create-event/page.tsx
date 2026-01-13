@@ -32,7 +32,7 @@ export default function CreateEvent() {
     paymentInstructions: '',
     isTeamEvent: false,
     minTeamSize: '1',
-    maxTeamSize: '4',
+    maxTeamSize: '15',
   });
   const [image, setImage] = useState<File | null>(null);
   const [paymentQrImage, setPaymentQrImage] = useState<File | null>(null);

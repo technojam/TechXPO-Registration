@@ -33,7 +33,7 @@ export default function EditEvent({ params }: { params: Promise<{ id: string }> 
     paymentInstructions: '',
     isTeamEvent: false,
     minTeamSize: '1',
-    maxTeamSize: '4',
+    maxTeamSize: '15',
   });
   const [image, setImage] = useState<File | null>(null);
   const [paymentQrImage, setPaymentQrImage] = useState<File | null>(null);
@@ -91,7 +91,7 @@ export default function EditEvent({ params }: { params: Promise<{ id: string }> 
             paymentInstructions: data.paymentInstructions || '',
             isTeamEvent: data.isTeamEvent || false,
             minTeamSize: data.minTeamSize || '1',
-            maxTeamSize: data.maxTeamSize || '4',
+            maxTeamSize: data.maxTeamSize || '15',
           });
           setExistingImageUrl(data.imageUrl || '');
           setExistingPaymentQrUrl(data.paymentQrUrl || '');
