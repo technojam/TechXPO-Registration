@@ -18,7 +18,7 @@ export interface Event {
   maxRegistrations?: number;
   registrationDeadline?: string;
   isPaused?: boolean;
-  category?: 'Hackathon' | 'Event' | 'Workshop' | 'CTF' | 'Quiz' | 'Hardware' | 'Design' | 'Gaming' | 'Entrepreneurship' | 'Tech Olympiad' | 'Lectures' | 'Drone Arena';
+  category?: 'Hackathon' | 'Event' | 'Workshop' | 'CTF' | 'Quiz' | 'Hardware' | 'Design' | 'Gaming' | 'Entrepreneurship' | 'Tech Olympiad' | 'Lectures' | 'Drone Arena' | 'Aerofiled';
   isTeamEvent?: boolean;
   minTeamSize?: number;
   maxTeamSize?: number;

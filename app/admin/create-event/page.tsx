@@ -187,6 +187,7 @@ export default function CreateEvent() {
             <option value="Tech Olympiad" className="bg-emerald-900">Tech Olympiad</option>
             <option value="Lectures" className="bg-emerald-900">Lectures</option>
             <option value="Drone Arena" className="bg-emerald-900">Drone Arena</option>
+            <option value="Aerofiled" className="bg-emerald-900">Aerofiled</option>
           </select>
         </div>
         <div>
