@@ -22,6 +22,7 @@ export interface Event {
   isTeamEvent?: boolean;
   minTeamSize?: number;
   maxTeamSize?: number;
+  isFree?: boolean;
   customQuestions?: CustomQuestion[];
   registrations: Registration[];
 }
@@ -67,7 +68,7 @@ export async function getPublicEvents(): Promise<Omit<Event, 'registrations'>[]>
     await initCosmos();
     // Use a query that excludes the registrations field to reduce payload and increase security
     const { resources } = await container.items
-      .query("SELECT c.id, c.title, c.description, c.startDate, c.endDate, c.startTime, c.endTime, c.location, c.mapUrl, c.imageUrl, c.category, c.isPaused, c.registrationDeadline from c")
+      .query("SELECT c.id, c.title, c.description, c.startDate, c.endDate, c.startTime, c.endTime, c.location, c.mapUrl, c.imageUrl, c.category, c.isPaused, c.registrationDeadline, c.isFree from c")
       .fetchAll();
     return resources as Omit<Event, 'registrations'>[];
   } catch (error) {

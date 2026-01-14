@@ -29,6 +29,7 @@ interface Event {
   paymentInstructions?: string;
   customQuestions?: CustomQuestion[];
   isPaused?: boolean;
+  isFree?: boolean;
   category?: 'Hackathon' | 'Event' | 'Workshop' | 'CTF' | 'Quiz' | 'Hardware' | 'Design' | 'Gaming' | 'Entrepreneurship' | 'Tech Olympiad' | 'Lectures' | 'Drone Arena' | 'Aerofiled';
   isTeamEvent?: boolean;
   minTeamSize?: number;
@@ -161,9 +162,11 @@ export default function EventDetails({ params }: { params: Promise<{ id: string 
        });
     }
 
-    if (!paymentProofImage) {
-        missingFields.push('Payment Proof (Screenshot)');
-        if (!firstMissingId) firstMissingId = event.isTeamEvent ? 'team-payment-proof-input' : 'payment-proof-input';
+    if (!event.isFree) {
+        if (!paymentProofImage) {
+            missingFields.push('Payment Proof (Screenshot)');
+            if (!firstMissingId) firstMissingId = event.isTeamEvent ? 'team-payment-proof-input' : 'payment-proof-input';
+        }
     }
 
     if (missingFields.length > 0) {
@@ -176,26 +179,28 @@ export default function EventDetails({ params }: { params: Promise<{ id: string 
 
     let paymentProofUrl = '';
 
-    if (paymentProofImage) {
-      const uploadFormData = new FormData();
-      uploadFormData.append('file', paymentProofImage);
-      const uploadRes = await fetch('/api/upload', {
-        method: 'POST',
-        body: uploadFormData,
-      });
-      if (uploadRes.ok) {
-        const data = await uploadRes.json();
-        paymentProofUrl = data.url;
-      } else {
-        alert('Failed to upload payment proof. Please try again.');
-        setRegistering(false);
-        return;
-      }
-    } else {
-        // Should be caught by validation, but double check
-        alert('Please upload a payment proof screenshot.');
-        setRegistering(false);
-        return;
+    if (!event.isFree) {
+        if (paymentProofImage) {
+        const uploadFormData = new FormData();
+        uploadFormData.append('file', paymentProofImage);
+        const uploadRes = await fetch('/api/upload', {
+            method: 'POST',
+            body: uploadFormData,
+        });
+        if (uploadRes.ok) {
+            const data = await uploadRes.json();
+            paymentProofUrl = data.url;
+        } else {
+            alert('Failed to upload payment proof. Please try again.');
+            setRegistering(false);
+            return;
+        }
+        } else {
+            // Should be caught by validation, but double check
+            alert('Please upload a payment proof screenshot.');
+            setRegistering(false);
+            return;
+        }
     }
 
     let payload = {};
@@ -290,7 +295,7 @@ export default function EventDetails({ params }: { params: Promise<{ id: string 
 
   const isFormComplete = (() => {
     if (!event) return false;
-    if (!paymentProofImage) return false;
+    if (!event.isFree && !paymentProofImage) return false;
 
     if (event.isTeamEvent) {
        // Validate Team Answers
@@ -598,6 +603,7 @@ export default function EventDetails({ params }: { params: Promise<{ id: string 
                     </div>
                   ))}
 
+                  {!event.isFree && (
                   <div className="mb-6">
                     <h3 className="text-lg font-semibold mb-2 text-emerald-200">Scan to Pay</h3>
                     {event.paymentQrUrl ? (
@@ -617,7 +623,9 @@ export default function EventDetails({ params }: { params: Promise<{ id: string 
                       </p>
                     )}
                   </div>
+                  )}
 
+                  {!event.isFree && (
                   <div>
                     <label className="block mb-1 font-medium text-emerald-100">Payment Proof (Screenshot) <span className="text-red-400">*</span></label>
                     <input
@@ -630,6 +638,7 @@ export default function EventDetails({ params }: { params: Promise<{ id: string 
                     />
                     <p className="text-xs text-emerald-400 mt-1">Supported formats: JPEG, PNG, WebP, GIF</p>
                   </div>
+                  )}
                   <button
                     type="submit"
                     disabled={registering || !isFormComplete}

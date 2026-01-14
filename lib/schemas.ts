@@ -19,5 +19,6 @@ export const eventSchema = z.object({
   minTeamSize: z.coerce.number().optional(),
   maxTeamSize: z.coerce.number().optional(),
   category: z.enum(['Hackathon', 'Event', 'Workshop', 'CTF', 'Quiz', 'Hardware', 'Design', 'Gaming', 'Entrepreneurship', 'Tech Olympiad', 'Lectures', 'Drone Arena', 'Aerofiled']).optional(),
+  isFree: z.boolean().optional(),
   isPaused: z.boolean().optional(), // Added for PUT requests (togglePause)
 });

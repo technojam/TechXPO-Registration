@@ -33,6 +33,7 @@ export default function CreateEvent() {
     isTeamEvent: false,
     minTeamSize: '1',
     maxTeamSize: '15',
+    isFree: false,
   });
   const [image, setImage] = useState<File | null>(null);
   const [paymentQrImage, setPaymentQrImage] = useState<File | null>(null);
@@ -330,25 +331,42 @@ export default function CreateEvent() {
           />
           <p className="text-xs text-emerald-400 mt-1">Supported formats: JPEG, PNG, WebP, GIF</p>
         </div>
-        <div>
-          <label className="block mb-1 font-medium text-emerald-100">Payment QR Code</label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => setPaymentQrImage(e.target.files?.[0] || null)}
-            className="w-full p-2 border border-emerald-700 rounded text-emerald-50 bg-emerald-900/50 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100"
-          />
-          <p className="text-xs text-emerald-400 mt-1">Supported formats: JPEG, PNG, WebP, GIF</p>
+
+        <div className="bg-emerald-900/30 p-4 rounded border border-emerald-800">
+          <label className="flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              checked={formData.isFree}
+              onChange={(e) => setFormData({ ...formData, isFree: e.target.checked })}
+              className="w-5 h-5 text-emerald-600 rounded border-emerald-700 focus:ring-emerald-500 bg-emerald-900/50 mr-3"
+            />
+            <span className="font-medium text-emerald-100">This is a Free Event (No Payment Required)</span>
+          </label>
         </div>
-        <div>
-          <label className="block mb-1 font-medium text-emerald-100">Payment Instructions / Text below QR</label>
-          <textarea
-            className="w-full p-2 border border-emerald-700 rounded h-24 text-emerald-50 bg-emerald-900/50 focus:border-emerald-500 focus:outline-none"
-            value={formData.paymentInstructions}
-            onChange={(e) => setFormData({ ...formData, paymentInstructions: e.target.value })}
-            placeholder="e.g., Scan the QR code to pay. Please include your name in the payment remarks."
-          />
-        </div>
+
+        {!formData.isFree && (
+          <>
+            <div>
+              <label className="block mb-1 font-medium text-emerald-100">Payment QR Code</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setPaymentQrImage(e.target.files?.[0] || null)}
+                className="w-full p-2 border border-emerald-700 rounded text-emerald-50 bg-emerald-900/50 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100"
+              />
+              <p className="text-xs text-emerald-400 mt-1">Supported formats: JPEG, PNG, WebP, GIF</p>
+            </div>
+            <div>
+              <label className="block mb-1 font-medium text-emerald-100">Payment Instructions / Text below QR</label>
+              <textarea
+                className="w-full p-2 border border-emerald-700 rounded h-24 text-emerald-50 bg-emerald-900/50 focus:border-emerald-500 focus:outline-none"
+                value={formData.paymentInstructions}
+                onChange={(e) => setFormData({ ...formData, paymentInstructions: e.target.value })}
+                placeholder="e.g., Scan the QR code to pay. Please include your name in the payment remarks."
+              />
+            </div>
+          </>
+        )}
 
         <div>
           <label className="block mb-2 font-medium text-emerald-100 text-lg">Add Questions</label>
