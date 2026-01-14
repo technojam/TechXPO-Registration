@@ -30,7 +30,7 @@ interface Event {
   customQuestions?: CustomQuestion[];
   isPaused?: boolean;
   isFree?: boolean;
-  category?: 'Hackathon' | 'Event' | 'Workshop' | 'CTF' | 'Quiz' | 'Hardware' | 'Design' | 'Gaming' | 'Entrepreneurship' | 'Tech Olympiad' | 'Lectures' | 'Drone Arena' | 'Aerofiled';
+  category?: 'Hackathon' | 'Event' | 'Workshop' | 'CTF' | 'Quiz' | 'Hardware' | 'Design' | 'Gaming' | 'Entrepreneurship' | 'Tech Olympiad' | 'Lectures' | 'Drone Arena' | 'Aerofield';
   isTeamEvent?: boolean;
   minTeamSize?: number;
   maxTeamSize?: number;
