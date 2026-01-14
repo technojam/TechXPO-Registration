@@ -24,6 +24,7 @@ interface Event {
   id: string;
   title: string;
   isTeamEvent?: boolean;
+  isFree?: boolean;
   customQuestions?: { id: string; text: string; scope?: 'team' | 'member' }[];
   registrations: Registration[];
 }
@@ -72,7 +73,11 @@ export default function EventRegistrations({ params }: { params: Promise<{ id: s
   const downloadCSV = () => {
     if (!event) return;
 
-    const headers = ['S.No', 'Payment Proof URL'];
+    const headers = ['S.No'];
+    if (!event.isFree) {
+        headers.push('Payment Proof URL');
+    }
+
     if (event.isTeamEvent) {
       headers.push('Member Type'); // Leader or Member
     }
@@ -83,7 +88,11 @@ export default function EventRegistrations({ params }: { params: Promise<{ id: s
     event.registrations.forEach((reg, regIndex) => {
       // Helper to generate row string
       const generateRow = (memberType: string, answers: Record<string, string>) => {
-        const row = [(regIndex + 1).toString(), reg.paymentProofUrl || ''];
+        const row = [(regIndex + 1).toString()];
+        if (!event.isFree) {
+            row.push(reg.paymentProofUrl || '');
+        }
+
         if (event.isTeamEvent) {
           row.push(memberType);
         }
@@ -224,7 +233,7 @@ export default function EventRegistrations({ params }: { params: Promise<{ id: s
           <thead className="bg-emerald-900/50 text-emerald-300 uppercase text-sm font-semibold">
             <tr>
               <th className="p-4 border-b border-emerald-800 w-16">S.No</th>
-              <th className="p-4 border-b border-emerald-800">Payment Proof</th>
+              {!event.isFree && <th className="p-4 border-b border-emerald-800">Payment Proof</th>}
               {event.isTeamEvent && <th className="p-4 border-b border-emerald-800">Member Type</th>}
               {event.customQuestions?.map(q => (
                 <th key={q.id} className="p-4 border-b border-emerald-800 min-w-[200px]">{q.text}</th>
@@ -238,6 +247,7 @@ export default function EventRegistrations({ params }: { params: Promise<{ id: s
                 <td className="p-4 text-emerald-400 font-mono text-sm">
                   {row.isFirstRow ? row.serialNumber : ''}
                 </td>
+                {!event.isFree && (
                 <td className="p-4">
                   {row.isFirstRow ? (
                     row.reg.paymentProofUrl ? (
@@ -256,6 +266,7 @@ export default function EventRegistrations({ params }: { params: Promise<{ id: s
                     <span className="text-emerald-500/30 text-sm">See above</span>
                   )}
                 </td>
+                )}
                 {event.isTeamEvent && <td className="p-4 text-emerald-300">{row.memberType}</td>}
                 {event.customQuestions?.map(q => {
                    let val = '';
@@ -285,7 +296,7 @@ export default function EventRegistrations({ params }: { params: Promise<{ id: s
             ))}
             {flattenedRows.length === 0 && (
               <tr>
-                <td colSpan={2 + (event.isTeamEvent ? 1 : 0) + (event.customQuestions?.length || 0)} className="p-8 text-center text-emerald-500/50">
+                <td colSpan={1 + (event.isFree ? 0 : 1) + (event.isTeamEvent ? 1 : 0) + (event.customQuestions?.length || 0) + 1} className="p-8 text-center text-emerald-500/50">
                   No registrations yet.
                 </td>
               </tr>
