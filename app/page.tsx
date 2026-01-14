@@ -16,15 +16,17 @@ export default async function Home() {
         <p className="text-lg md:text-xl text-emerald-200/70">Join us for the biggest tech fest of the year!</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {events.map((event) => (
           <div key={event.id} className="border border-emerald-800 rounded-lg overflow-hidden shadow-lg hover:shadow-emerald-900/50 transition-all bg-emerald-900/30 text-emerald-50 backdrop-blur-sm flex flex-col h-full">
             {event.imageUrl ? (
-              <img
-                src={event.imageUrl}
-                alt={event.title}
-                className="w-full h-48 object-cover"
-              />
+              <div className="w-full h-48 relative">
+                 <img
+                   src={event.imageUrl}
+                   alt={event.title}
+                   className="w-full h-full object-cover"
+                 />
+              </div>
             ) : (
                <div className="w-full h-48 bg-emerald-800/30 flex items-center justify-center border-b border-emerald-800/50">
                   <span className="text-emerald-500/50 font-bold text-xl uppercase tracking-widest">{event.category || 'TechXpo'}</span>
@@ -70,7 +72,7 @@ export default async function Home() {
             </div>
           </div>
         ))}
-      </div>
+      </section>
       
       {events.length === 0 && (
         <div className="text-center text-emerald-500/50 mt-12">
