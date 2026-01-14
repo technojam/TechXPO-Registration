@@ -518,6 +518,7 @@ export default function EventDetails({ params }: { params: Promise<{ id: string 
 
                   {/* Payment Section */}
                   <div>
+                    {!event.isFree && (
                     <div className="mb-6">
                       <h3 className="text-lg font-semibold mb-2 text-emerald-200">Scan to Pay</h3>
                       {event.paymentQrUrl ? (
@@ -538,7 +539,9 @@ export default function EventDetails({ params }: { params: Promise<{ id: string 
                         </p>
                       )}
                     </div>
+                    )}
 
+                    {!event.isFree && (
                     <div>
                       <label className="block mb-1 font-medium text-emerald-100">Payment Proof (Screenshot) <span className="text-red-400">*</span></label>
                       <input
@@ -551,6 +554,7 @@ export default function EventDetails({ params }: { params: Promise<{ id: string 
                       />
                       <p className="text-xs text-emerald-400 mt-1">Supported formats: JPEG, PNG, WebP, GIF</p>
                     </div>
+                    )}
                     
                     <div className="mt-6">
                       <button
