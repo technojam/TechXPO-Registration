@@ -31,6 +31,16 @@ export async function verifyBackendToken(request: Request) {
     
     // Verify the token
     const decodedToken = await adminAuth.verifyIdToken(token);
+
+    // SECURITY: Enforce Admin Email Whitelist
+    // Even if a user manages to "Simulate Login" or create a dummy account via public API,
+    // they cannot perform any actions unless their email is in this server-side list.
+    const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim());
+    if (!decodedToken.email || !adminEmails.includes(decodedToken.email)) {
+      console.warn(`Unauthorized Access Attempt: ${decodedToken.email} is not an admin.`);
+      return null;
+    }
+
     return decodedToken;
     
   } catch (error) {

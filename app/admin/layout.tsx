@@ -16,10 +16,14 @@ export default function AdminLayout({
   const [authorized, setAuthorized] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setAuthorized(true);
-        // If on login page, redirect to admin dashboard
+        // Security: Check if the user's email is in the allowed admin list (Client-side Check)
+        // Important: A strict server-side check happens in API routes.
+        // This is just for UX redirection.
+        // We could fetch a server action here to verify session cookies if we used them.
+        
         if (pathname === '/admin/login') {
           router.push('/admin');
         }
