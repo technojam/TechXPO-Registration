@@ -63,7 +63,7 @@ export const generateSasUrl = (fileUrl: string, expiresInMinutes: number = 60) =
             containerName: AZURE_CONTAINER_NAME,
             blobName: blobName,
             permissions: BlobSASPermissions.parse("r"), // Read only
-            startsOn: new Date(),
+            startsOn: new Date(new Date().valueOf() - 5 * 60 * 1000), // Start 5 minutes in the past to prevent clock skew errors
             expiresOn: new Date(new Date().valueOf() + expiresInMinutes * 60 * 1000),
         };
 
