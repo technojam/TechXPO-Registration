@@ -8,7 +8,7 @@ const rateLimitMap = new Map();
 
 // Configuration
 const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
-const MAX_REQUESTS_PER_WINDOW = 100; // 100 requests per minute per IP
+const MAX_REQUESTS_PER_WINDOW = 300; // 300 requests per minute per IP (Targeted routes)
 const BLOCKED_IPS = new Set<string>(); // Add known bad IPs here
 
 // WAF: Block common malicious patterns
@@ -56,6 +56,11 @@ function extractClientIp(request: NextRequest) {
 }
 
 export function proxy(request: NextRequest) {
+  // 0. Filter out Next.js Prefetches
+  if (request.headers.get('x-nextjs-prefetch') || request.headers.get('x-purpose') === 'prefetch') {
+    return NextResponse.next();
+  }
+
   const ip = extractClientIp(request);
   const path = request.nextUrl.pathname;
   const userAgent = request.headers.get('user-agent') || '';
@@ -100,7 +105,7 @@ export function proxy(request: NextRequest) {
   const validRequests = requestHistory.filter((timestamp: number) => timestamp > windowStart);
   
   // Stricter Rate Limit for Admin Login
-  const limit = path.includes('/admin/login') ? 5 : MAX_REQUESTS_PER_WINDOW; 
+  const limit = path.includes('/admin/login') ? 20 : MAX_REQUESTS_PER_WINDOW; 
   
   if (validRequests.length >= limit) {
     return new NextResponse(
@@ -145,7 +150,7 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Apply to all routes except static files
-    '/((?!_next/static|_next/image|favicon.ico).*)',
+    '/api/:path*',
+    '/admin/:path*',
   ],
 };
