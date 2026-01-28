@@ -55,7 +55,7 @@ function extractClientIp(request: NextRequest) {
   return 'unknown';
 }
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const ip = extractClientIp(request);
   const path = request.nextUrl.pathname;
   const userAgent = request.headers.get('user-agent') || '';
