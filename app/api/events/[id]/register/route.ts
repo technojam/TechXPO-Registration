@@ -70,11 +70,39 @@ export async function POST(
   // This ensures the response is sent immediately while the email sends in the background
   // Check if email sending is enabled for this event
   if (event.sendConfirmationEmail !== false) { // Default to true if undefined
-    waitUntil(
-      sendConfirmationEmail(event, newRegistration).catch(err => 
-        console.error("Email sending failed in background:", err)
-      )
-    );
+     const azureEmailUrl = process.env.AZURE_EMAIL_FUNCTION_URL;
+     const azureFunctionKey = process.env.AZURE_EMAIL_FUNCTION_KEY;
+
+     if (azureEmailUrl) {
+        // Use Azure Function to offload execution
+        waitUntil(
+           fetch(azureEmailUrl, {
+              method: 'POST',
+              headers: {
+                 'Content-Type': 'application/json',
+                 ...(azureFunctionKey ? { 'x-functions-key': azureFunctionKey } : {})
+              },
+              body: JSON.stringify({
+                 event: {
+                    id: event.id,
+                    title: event.title,
+                    description: event.description,
+                    startDate: event.startDate,
+                    endDate: event.endDate,
+                    startTime: event.startTime,
+                    endTime: event.endTime,
+                    location: event.location,
+                    mapUrl: event.mapUrl,
+                    imageUrl: event.imageUrl,
+                    customQuestions: event.customQuestions
+                 },
+                 registration: newRegistration
+              })
+           }).catch(err => console.error("Failed to trigger Azure Email Function:", err))
+        );
+     } else {
+        console.warn("AZURE_EMAIL_FUNCTION_URL is not set. Email will NOT be sent.");
+     }
   }
 
   return NextResponse.json(newRegistration, { status: 201 });
