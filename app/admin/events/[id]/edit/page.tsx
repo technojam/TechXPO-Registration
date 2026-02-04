@@ -35,6 +35,7 @@ export default function EditEvent({ params }: { params: Promise<{ id: string }> 
     minTeamSize: '1',
     maxTeamSize: '15',
     isFree: false,
+    sendConfirmationEmail: true,
   });
   const [image, setImage] = useState<File | null>(null);
   const [paymentQrImage, setPaymentQrImage] = useState<File | null>(null);
@@ -94,6 +95,7 @@ export default function EditEvent({ params }: { params: Promise<{ id: string }> 
             minTeamSize: data.minTeamSize || '1',
             maxTeamSize: data.maxTeamSize || '15',
             isFree: data.isFree || false,
+            sendConfirmationEmail: data.sendConfirmationEmail ?? true,
           });
           setExistingImageUrl(data.imageUrl || '');
           setExistingPaymentQrUrl(data.paymentQrUrl || '');
@@ -389,6 +391,18 @@ export default function EditEvent({ params }: { params: Promise<{ id: string }> 
                 className="w-5 h-5 text-emerald-600 rounded border-emerald-700 focus:ring-emerald-500 bg-emerald-900/50 mr-3"
               />
               <span className="font-medium text-emerald-100">This is a Free Event (No Payment Required)</span>
+            </label>
+          </div>
+
+          <div className="bg-emerald-900/30 p-4 rounded border border-emerald-800 my-4">
+            <label className="flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={formData.sendConfirmationEmail}
+                onChange={(e) => setFormData({ ...formData, sendConfirmationEmail: e.target.checked })}
+                className="w-5 h-5 text-emerald-600 rounded border-emerald-700 focus:ring-emerald-500 bg-emerald-900/50 mr-3"
+              />
+              <span className="font-medium text-emerald-100">Send Confirmation Email?</span>
             </label>
           </div>
 

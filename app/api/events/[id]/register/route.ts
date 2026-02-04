@@ -3,6 +3,7 @@ import { addRegistration, Registration, getEventById } from '@/lib/db';
 import { v4 as uuidv4 } from 'uuid';
 import { registrationSchema } from '@/lib/registrationSchema';
 import { sendConfirmationEmail } from '@/lib/email';
+import { waitUntil } from '@vercel/functions';
 
 export async function POST(
   request: Request,
@@ -65,14 +66,15 @@ export async function POST(
     return NextResponse.json({ error: result.error || 'Registration failed' }, { status: 500 });
   }
 
-  // Send Confirmation Email asynchronously
-  // We use waitUntil if available (cloudfare/vercel edge) or just fire and forget in node environment.
-  // Since we are likely in a standard Node.js serverless function, we await it to ensure it sends logic triggers
-  // but catch errors so we don't fail the request.
-  try {
-     await sendConfirmationEmail(event, newRegistration);
-  } catch (emailError) {
-     console.error("Email sending failed but registration succeeded:", emailError);
+  // Send Confirmation Email asynchronously using Vercel's waitUntil to prevent timeout blocking
+  // This ensures the response is sent immediately while the email sends in the background
+  // Check if email sending is enabled for this event
+  if (event.sendConfirmationEmail !== false) { // Default to true if undefined
+    waitUntil(
+      sendConfirmationEmail(event, newRegistration).catch(err => 
+        console.error("Email sending failed in background:", err)
+      )
+    );
   }
 
   return NextResponse.json(newRegistration, { status: 201 });

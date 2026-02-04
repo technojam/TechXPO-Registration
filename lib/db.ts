@@ -23,6 +23,7 @@ export interface Event {
   minTeamSize?: number;
   maxTeamSize?: number;
   isFree?: boolean;
+  sendConfirmationEmail?: boolean;
   customQuestions?: CustomQuestion[];
   registrations: Registration[];
 }

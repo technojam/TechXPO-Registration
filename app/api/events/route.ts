@@ -49,6 +49,8 @@ export async function POST(request: Request) {
     isTeamEvent: data.isTeamEvent,
     minTeamSize: data.minTeamSize,
     maxTeamSize: data.maxTeamSize,
+    isFree: data.isFree,
+    sendConfirmationEmail: data.sendConfirmationEmail,
     category: data.category || 'Event',
     customQuestions: data.customQuestions || [],
     registrations: [],

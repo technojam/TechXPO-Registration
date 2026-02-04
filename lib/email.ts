@@ -124,17 +124,37 @@ export async function sendConfirmationEmail(event: Event, registration: Registra
       </div>
     `;
 
-    const poller = await client.beginSend({
-      senderAddress: senderAddress,
-      content: {
-        subject: subject,
-        plainText: `Registration Confirmed for ${title}. See you on ${startDate} at ${location}.`,
-        html: htmlContent,
-      },
-      recipients: {
-        to: [{ address: recipientEmail, displayName: recipientName }],
-      },
-    });
+    const sendEmail = async () => {
+        return await client.beginSend({
+          senderAddress: senderAddress,
+          content: {
+            subject: subject,
+            plainText: `Registration Confirmed for ${title}. See you on ${startDate} at ${location}.`,
+            html: htmlContent,
+          },
+          recipients: {
+            to: [{ address: recipientEmail, displayName: recipientName }],
+          },
+        });
+    };
+
+    // Simple retry logic for 429 TooManyRequests
+    let poller;
+    const maxRetries = 3;
+    for (let i = 0; i < maxRetries; i++) {
+        try {
+            poller = await sendEmail();
+            break;
+        } catch (error: any) {
+             if (i < maxRetries - 1 && (error?.statusCode === 429 || error?.code === 'TooManyRequests')) {
+                 const delay = 1000 * Math.pow(2, i); // 1s, 2s, 4s
+                 console.warn(`Email sending rate limited. Retrying in ${delay}ms...`);
+                 await new Promise(resolve => setTimeout(resolve, delay));
+             } else {
+                 throw error;
+             }
+        }
+    }
 
     // We don't wait for the full polling to complete to avoid blocking the API response for too long
     // But we initiate it. In serverless, we might want to await it or use a background job.
@@ -144,7 +164,7 @@ export async function sendConfirmationEmail(event: Event, registration: Registra
     // but standard await poller.pollUntilDone() can be slow. 
     // We will just await the initial acceptance.
     
-    console.log(`Email initiated for ${recipientEmail}. Operation ID: ${poller.getResult()?.id}`);
+    console.log(`Email initiated for ${recipientEmail}. Operation ID: ${poller?.getResult()?.id}`);
 
   } catch (error) {
     console.error("Failed to send confirmation email:", error);

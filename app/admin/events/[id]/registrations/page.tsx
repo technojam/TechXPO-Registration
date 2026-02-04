@@ -2,7 +2,7 @@
 
 import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
-import { Download, ArrowLeft, Trash2 } from 'lucide-react';
+import { Download, ArrowLeft, Trash2, Mail } from 'lucide-react';
 import Link from 'next/link';
 import { auth } from '@/lib/firebase';
 
@@ -35,6 +35,7 @@ export default function EventRegistrations({ params }: { params: Promise<{ id: s
   const router = useRouter();
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
+  const [sendingEmail, setSendingEmail] = useState<string | null>(null);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -67,6 +68,34 @@ export default function EventRegistrations({ params }: { params: Promise<{ id: s
       console.error('Failed to fetch event', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResendEmail = async (registrationId: string) => {
+    if (!auth.currentUser) return;
+    setSendingEmail(registrationId);
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch(`/api/events/${id}/registrations/resend-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ registrationId })
+      });
+
+      if (res.ok) {
+        alert('Email queued for sending successfully');
+      } else {
+        const err = await res.json();
+        alert(`Failed to send email: ${err.error}`);
+      }
+    } catch (error) {
+      console.error('Error sending email:', error);
+      alert('Error sending email');
+    } finally {
+      setSendingEmail(null);
     }
   };
 
@@ -283,13 +312,23 @@ export default function EventRegistrations({ params }: { params: Promise<{ id: s
                 })}
                 <td className="p-4 text-right">
                   {row.isFirstRow && (
-                    <button
-                      onClick={() => handleDelete(row.reg.id)}
-                      className="p-2 text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded transition-colors"
-                      title="Delete Registration"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
+                    <div className="flex justify-end gap-2">
+                      <button
+                        onClick={() => handleDelete(row.reg.id)}
+                        className="p-2 text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded transition-colors"
+                        title="Delete Registration"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                      <button
+                        onClick={() => handleResendEmail(row.reg.id)}
+                        disabled={sendingEmail === row.reg.id}
+                        className={`p-2 text-blue-400 hover:text-blue-300 hover:bg-blue-900/20 rounded transition-colors ${sendingEmail === row.reg.id ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        title="Resend Confirmation Email"
+                      >
+                        <Mail className={`w-5 h-5 ${sendingEmail === row.reg.id ? 'animate-pulse' : ''}`} />
+                      </button>
+                    </div>
                   )}
                 </td>
               </tr>
