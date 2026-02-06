@@ -301,7 +301,10 @@ export default function EventDetails({ params }: { params: Promise<{ id: string 
        // Validate Team Answers
        const teamQuestionsValid = event.customQuestions
          ?.filter(q => q.scope === 'team' && q.required)
-         .every(q => teamAnswers[q.id] && teamAnswers[q.id].trim());
+         .every(q => {
+           const value = teamAnswers[q.id];
+           return value !== undefined && value !== null && String(value).trim().length > 0;
+         });
        
        if (teamQuestionsValid === false) return false;
 
@@ -310,16 +313,23 @@ export default function EventDetails({ params }: { params: Promise<{ id: string 
            const memberAns = memberAnswers[i] || {};
            const memberValid = event.customQuestions
              ?.filter(q => q.scope !== 'team' && q.required)
-             .every(q => memberAns[q.id] && memberAns[q.id].trim());
+             .every(q => {
+               const value = memberAns[q.id];
+               return value !== undefined && value !== null && String(value).trim().length > 0;
+             });
            
            if (memberValid === false) return false;
        }
        return true;
     } else {
        // Validate Individual Answers
-        return event.customQuestions
-           ?.filter(q => q.required)
-           .every(q => answers[q.id] && answers[q.id].trim()) ?? true;
+       const requiredQuestions = event.customQuestions?.filter(q => q.required) || [];
+       if (requiredQuestions.length === 0) return true;
+       
+       return requiredQuestions.every(q => {
+         const value = answers[q.id];
+         return value !== undefined && value !== null && String(value).trim().length > 0;
+       });
     }
   })();
 
@@ -452,6 +462,12 @@ export default function EventDetails({ params }: { params: Promise<{ id: string 
                             className="w-full p-2 border border-emerald-700 rounded text-emerald-50 bg-emerald-900/50 focus:border-emerald-500 focus:outline-none"
                             value={teamAnswers[question.id] || ''}
                             onChange={(e) => setTeamAnswers({ ...teamAnswers, [question.id]: e.target.value })}
+                            onBlur={(e) => {
+                              const trimmedValue = e.target.value.trim();
+                              if (trimmedValue !== e.target.value) {
+                                setTeamAnswers({ ...teamAnswers, [question.id]: trimmedValue });
+                              }
+                            }}
                           />
                         )}
                       </div>
@@ -510,6 +526,12 @@ export default function EventDetails({ params }: { params: Promise<{ id: string 
                             className="w-full p-2 border border-emerald-700 rounded text-emerald-50 bg-emerald-900/50 focus:border-emerald-500 focus:outline-none text-sm"
                             value={memberAnswers[currentStep]?.[question.id] || ''}
                             onChange={(e) => handleMemberAnswerChange(currentStep, question.id, e.target.value)}
+                            onBlur={(e) => {
+                              const trimmedValue = e.target.value.trim();
+                              if (trimmedValue !== e.target.value) {
+                                handleMemberAnswerChange(currentStep, question.id, trimmedValue);
+                              }
+                            }}
                           />
                         )}
                       </div>
@@ -602,6 +624,12 @@ export default function EventDetails({ params }: { params: Promise<{ id: string 
                           className="w-full p-2 border border-emerald-700 rounded text-emerald-50 bg-emerald-900/50 focus:border-emerald-500 focus:outline-none"
                           value={answers[question.id] || ''}
                           onChange={(e) => setAnswers({ ...answers, [question.id]: e.target.value })}
+                          onBlur={(e) => {
+                            const trimmedValue = e.target.value.trim();
+                            if (trimmedValue !== e.target.value) {
+                              setAnswers({ ...answers, [question.id]: trimmedValue });
+                            }
+                          }}
                         />
                       )}
                     </div>
