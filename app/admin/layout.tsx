@@ -18,14 +18,33 @@ export default function AdminLayout({
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        setAuthorized(true);
-        // Security: Check if the user's email is in the allowed admin list (Client-side Check)
-        // Important: A strict server-side check happens in API routes.
-        // This is just for UX redirection.
-        // We could fetch a server action here to verify session cookies if we used them.
-        
-        if (pathname === '/admin/login') {
-          router.push('/admin');
+        try {
+          // Get the ID token
+          const token = await user.getIdToken();
+          
+          // Verify with server if this user is actually an admin
+          const response = await fetch('/api/auth/verify-admin', {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+
+          if (response.ok) {
+            setAuthorized(true);
+            if (pathname === '/admin/login') {
+              router.push('/admin');
+            }
+          } else {
+            console.warn('Unauthorized user blocked from admin panel.');
+            await auth.signOut();
+            setAuthorized(false);
+            if (pathname !== '/admin/login') {
+               router.push('/admin/login?error=unauthorized');
+            }
+          }
+        } catch (error) {
+          console.error('Admin verification failed:', error);
+          setAuthorized(false);
         }
       } else {
         setAuthorized(false);
