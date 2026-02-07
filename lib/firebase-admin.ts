@@ -5,7 +5,7 @@ if (!admin.apps.length) {
   try {
     admin.initializeApp({
       credential: admin.credential.cert({
-        projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+        projectId: process.env.FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
         clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
         // Handle private keys with escaped newlines
         privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
@@ -22,19 +22,27 @@ export const adminAuth = admin.auth();
 export async function verifyBackendToken(request: Request) {
   try {
     const authHeader = request.headers.get('Authorization');
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return null;
+    let decodedToken;
+
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split('Bearer ')[1];
+      decodedToken = await adminAuth.verifyIdToken(token);
+    } else {
+      // Fallback: Check for session cookie
+      const cookieHeader = request.headers.get('Cookie') || '';
+      const sessionCookie = cookieHeader
+        .split(';')
+        .find(c => c.trim().startsWith('__session='));
+      
+      if (sessionCookie) {
+        const token = sessionCookie.split('=')[1];
+        decodedToken = await adminAuth.verifySessionCookie(token, true /** checkRevoked */);
+      } else {
+        return null;
+      }
     }
 
-    const token = authHeader.split('Bearer ')[1];
-    
-    // Verify the token
-    const decodedToken = await adminAuth.verifyIdToken(token);
-
     // SECURITY: Enforce Admin Email Whitelist
-    // Even if a user manages to "Simulate Login" or create a dummy account via public API,
-    // they cannot perform any actions unless their email is in this server-side list.
     const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim());
     if (!decodedToken.email || !adminEmails.includes(decodedToken.email)) {
       console.warn(`Unauthorized Access Attempt: ${decodedToken.email} is not an admin.`);
@@ -44,7 +52,7 @@ export async function verifyBackendToken(request: Request) {
     return decodedToken;
     
   } catch (error) {
-    console.error('Auth Verification Failed:', error);
+    // console.error('Auth Verification Failed:', error); // Silent fail for cleaner logs
     return null;
   }
 }

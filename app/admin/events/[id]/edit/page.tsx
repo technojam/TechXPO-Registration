@@ -4,7 +4,6 @@ import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { v4 as uuidv4 } from 'uuid';
-import { auth } from '@/lib/firebase';
 
 interface CustomQuestion {
   id: string;
@@ -54,28 +53,18 @@ export default function EditEvent({ params }: { params: Promise<{ id: string }> 
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (user) {
-        fetchEvent(user);
-      } else {
-        // If it's a deep link, maybe redirect to login? 
-        // Or if public GET allows restricted data, we can just fetch.
-        // But for EDIT page, we need full data.
-        router.push('/admin/login');
-      }
-    });
-    return () => unsubscribe();
+    fetchEvent();
   }, [id, router]);
 
-  const fetchEvent = async (user = auth.currentUser) => {
-    if (!user) return;
+  const fetchEvent = async () => {
     try {
-      const token = await user.getIdToken();
-      const res = await fetch(`/api/events/${id}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const res = await fetch(`/api/events/${id}`);
+      
+      if (res.status === 401) {
+          router.push('/admin/login');
+          return;
+      }
+
       if (res.ok) {
         const data = await res.json();
         setFormData({
@@ -192,19 +181,10 @@ export default function EditEvent({ params }: { params: Promise<{ id: string }> 
       }
     }
 
-    const user = auth.currentUser;
-    if (!user) {
-      alert('You must be logged in to update an event');
-      setSaving(false);
-      return;
-    }
-    const token = await user.getIdToken();
-
     const res = await fetch(`/api/events/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({
         ...formData,
@@ -214,6 +194,12 @@ export default function EditEvent({ params }: { params: Promise<{ id: string }> 
         maxRegistrations: formData.maxRegistrations ? parseInt(formData.maxRegistrations) : undefined,
       }),
     });
+
+    if (res.status === 401) {
+        alert('Your session has expired. Please login again.');
+        router.push('/admin/login');
+        return;
+    }
 
     if (res.ok) {
       alert('Event updated successfully!');

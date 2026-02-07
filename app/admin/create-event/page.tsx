@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { v4 as uuidv4 } from 'uuid';
-import { auth } from '@/lib/firebase';
 
 interface CustomQuestion {
   id: string;
@@ -128,22 +127,19 @@ export default function CreateEvent() {
       }
     }
 
-    const user = auth.currentUser;
-    if (!user) {
-      alert('You must be logged in to create an event');
-      setLoading(false);
-      return;
-    }
-    const token = await user.getIdToken();
-
     const res = await fetch('/api/events', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({ ...formData, imageUrl, paymentQrUrl, customQuestions }),
     });
+
+    if (res.status === 401) {
+        alert('Your session has expired. Please login again.');
+        router.push('/admin/login');
+        return;
+    }
 
     if (res.ok) {
       router.push('/admin');

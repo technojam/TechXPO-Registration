@@ -4,6 +4,12 @@ import { v4 as uuidv4 } from 'uuid';
 import sharp from 'sharp';
 
 export async function POST(request: Request) {
+  // Public Endpoint: Required for public users to upload payment proofs during registration
+  // Security relies on: 
+  // 1. Strict file type validation (images only)
+  // 2. Size limits (5MB)
+  // 3. Image conversion (strips executable code)
+
   const formData = await request.formData();
   const file = formData.get('file') as File;
 

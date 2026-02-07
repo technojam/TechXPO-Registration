@@ -1,8 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 
 export default function AdminLogin() {
@@ -18,11 +16,22 @@ export default function AdminLogin() {
     setError('');
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      router.push('/admin');
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (response.ok) {
+        router.push('/admin');
+        router.refresh();
+      } else {
+        const data = await response.json();
+        setError(data.error || 'Login failed');
+      }
     } catch (err: any) {
       console.error(err);
-      setError('Invalid email or password');
+      setError('An error occurred. Please try again.');
     } finally {
       setLoading(false);
     }

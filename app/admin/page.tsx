@@ -3,8 +3,6 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Calendar, MapPin, Users, Edit, Trash2, Eye, PauseCircle, PlayCircle, LogOut } from 'lucide-react';
-import { signOut } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 
 interface Event {
@@ -26,27 +24,16 @@ export default function AdminDashboard() {
   const router = useRouter();
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (user) {
-        fetchEvents(user);
-      } else {
-        router.push('/admin/login');
-        setLoading(false);
-      }
-    });
-
-    return () => unsubscribe();
+    fetchEvents();
   }, []);
 
-  const fetchEvents = async (user = auth.currentUser) => {
-    if (!user) return;
+  const fetchEvents = async () => {
     try {
-      const token = await user.getIdToken();
-      const res = await fetch('/api/events', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const res = await fetch('/api/events');
+      if (res.status === 401) {
+         router.push('/admin/login');
+         return;
+      }
       if (res.ok) {
         const data = await res.json();
         setEvents(data);
@@ -59,19 +46,19 @@ export default function AdminDashboard() {
   };
 
   const togglePause = async (event: Event) => {
-    const user = auth.currentUser;
-    if (!user) return;
-    const token = await user.getIdToken();
-
     try {
       const res = await fetch(`/api/events/${event.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ isPaused: !event.isPaused }),
       });
+
+      if (res.status === 401) {
+         router.push('/admin/login');
+         return;
+      }
 
       if (res.ok) {
         const updatedEvent = await res.json();
@@ -87,17 +74,16 @@ export default function AdminDashboard() {
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this event?')) return;
 
-    const user = auth.currentUser;
-    if (!user) return;
-
     try {
-      const token = await user.getIdToken();
       const res = await fetch(`/api/events/${id}`, {
         method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
       });
+      
+      if (res.status === 401) {
+          router.push('/admin/login');
+          return;
+      }
+
       if (res.ok) {
         setEvents(events.filter((e) => e.id !== id));
       } else {
@@ -109,8 +95,9 @@ export default function AdminDashboard() {
   };
 
   const handleLogout = async () => {
-    await signOut(auth);
+    await fetch('/api/auth/logout', { method: 'POST' });
     router.push('/admin/login');
+    router.refresh();
   };
 
   if (loading) return <div className="p-8 text-center text-emerald-100">Loading...</div>;

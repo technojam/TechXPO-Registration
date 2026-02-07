@@ -4,7 +4,6 @@ import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { Download, ArrowLeft, Trash2, Mail } from 'lucide-react';
 import Link from 'next/link';
-import { auth } from '@/lib/firebase';
 
 interface Registration {
   id: string;
@@ -38,25 +37,18 @@ export default function EventRegistrations({ params }: { params: Promise<{ id: s
   const [sendingEmail, setSendingEmail] = useState<string | null>(null);
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (user) {
-        fetchEvent(user);
-      } else {
-        router.push('/admin/login');
-      }
-    });
-    return () => unsubscribe();
+    fetchEvent();
   }, [id, router]);
 
-  const fetchEvent = async (user = auth.currentUser) => {
-    if (!user) return;
+  const fetchEvent = async () => {
     try {
-      const token = await user.getIdToken();
-      const res = await fetch(`/api/events/${id}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const res = await fetch(`/api/events/${id}`);
+      
+      if (res.status === 401) {
+          router.push('/admin/login');
+          return;
+      }
+
       if (res.ok) {
         const data = await res.json();
         setEvent(data);
@@ -72,18 +64,20 @@ export default function EventRegistrations({ params }: { params: Promise<{ id: s
   };
 
   const handleResendEmail = async (registrationId: string) => {
-    if (!auth.currentUser) return;
     setSendingEmail(registrationId);
     try {
-      const token = await auth.currentUser.getIdToken();
       const res = await fetch(`/api/events/${id}/registrations/resend-email`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ registrationId })
       });
+
+      if (res.status === 401) {
+         router.push('/admin/login');
+         return;
+      }
 
       if (res.ok) {
         alert('Email queued for sending successfully');
@@ -172,21 +166,17 @@ export default function EventRegistrations({ params }: { params: Promise<{ id: s
       return;
     }
 
-    const user = auth.currentUser;
-    if (!user) {
-      alert('You must be logged in to delete registrations.');
-      return;
-    }
-
     try {
-      const token = await user.getIdToken();
       const res = await fetch(`/api/events/${id}/registrations/${regId}`, {
         method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
       });
+      
+      if (res.status === 401) {
+          router.push('/admin/login');
+          return;
+      }
 
+      const result = await res.json();
       if (res.ok) {
         setEvent(prev => prev ? {
           ...prev,
@@ -194,11 +184,11 @@ export default function EventRegistrations({ params }: { params: Promise<{ id: s
         } : null);
         alert('Registration deleted successfully');
       } else {
-        alert('Failed to delete registration');
+        alert(`Failed to delete: ${result.error || 'Unknown error'}`);
       }
     } catch (error) {
-      console.error('Error deleting registration:', error);
-      alert('An error occurred while deleting');
+      console.error('Delete error:', error);
+      alert('Failed to delete registration.');
     }
   };
 

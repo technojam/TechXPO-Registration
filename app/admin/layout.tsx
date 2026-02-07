@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
 
 export default function AdminLayout({
   children,
@@ -16,47 +14,31 @@ export default function AdminLayout({
   const [authorized, setAuthorized] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        try {
-          // Get the ID token
-          const token = await user.getIdToken();
-          
-          // Verify with server if this user is actually an admin
-          const response = await fetch('/api/auth/verify-admin', {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          });
-
-          if (response.ok) {
-            setAuthorized(true);
-            if (pathname === '/admin/login') {
-              router.push('/admin');
-            }
-          } else {
-            console.warn('Unauthorized user blocked from admin panel.');
-            await auth.signOut();
-            setAuthorized(false);
-            if (pathname !== '/admin/login') {
-               router.push('/admin/login?error=unauthorized');
-            }
+    async function checkAuth() {
+      try {
+        const res = await fetch('/api/auth/me');
+        if (res.ok) {
+          setAuthorized(true);
+          if (pathname === '/admin/login') {
+            router.push('/admin');
           }
-        } catch (error) {
-          console.error('Admin verification failed:', error);
+        } else {
           setAuthorized(false);
+          if (pathname !== '/admin/login') {
+            router.push('/admin/login');
+          }
         }
-      } else {
+      } catch (error) {
         setAuthorized(false);
-        // If not on login page, redirect to login
         if (pathname !== '/admin/login') {
-          router.push('/admin/login');
+           router.push('/admin/login');
         }
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
+    }
+    
+    checkAuth();
   }, [router, pathname]);
 
   if (loading) {
