@@ -9,6 +9,20 @@ export async function POST(request: Request) {
   // 1. Strict file type validation (images only)
   // 2. Size limits (5MB)
   // 3. Image conversion (strips executable code)
+  // 4. Origin Check (Prevent hotlinking/abuse)
+
+  const origin = request.headers.get('origin');
+  const referer = request.headers.get('referer');
+  const host = request.headers.get('host'); // e.g., localhost:3000
+
+  // Allow requests only if they match the host (basic CSRF-like protection)
+  // We skip this check in non-production generally, but here we can be loose
+  if (process.env.NODE_ENV === 'production') {
+      const allowed = origin?.includes(host!) || referer?.includes(host!);
+      if (!allowed) {
+          return NextResponse.json({ error: 'Forbidden Origin' }, { status: 403 });
+      }
+  }
 
   const formData = await request.formData();
   const file = formData.get('file') as File;
