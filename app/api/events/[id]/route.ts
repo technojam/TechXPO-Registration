@@ -4,6 +4,8 @@ import { containerClient, generateSasUrl } from '@/lib/azure';
 import { verifyBackendToken } from '@/lib/firebase-admin';
 import { eventSchema } from '@/lib/schemas';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -19,9 +21,21 @@ export async function GET(
   const decodedToken = await verifyBackendToken(request);
 
   if (!decodedToken) {
-    // Public User: Strip sensitive data
-    const { registrations, ...publicEvent } = event;
-    return NextResponse.json(publicEvent);
+    // Public User: Strip sensitive data but include registration count
+    const registrationCount = (event.registrations && Array.isArray(event.registrations)) 
+      ? event.registrations.length 
+      : 0;
+    
+    // Create a new object with all fields except registrations, then add registrationCount
+    const responseObj: any = {};
+    for (const [key, value] of Object.entries(event)) {
+      if (key !== 'registrations') {
+        responseObj[key] = value;
+      }
+    }
+    responseObj.registrationCount = registrationCount;
+    
+    return NextResponse.json(responseObj);
   }
 
   // Admin User: Return full data with SAS tokens for secure images

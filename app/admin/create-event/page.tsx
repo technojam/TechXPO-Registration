@@ -132,7 +132,15 @@ export default function CreateEvent() {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ ...formData, imageUrl, paymentQrUrl, customQuestions }),
+      body: JSON.stringify({ 
+        ...formData, 
+        imageUrl, 
+        paymentQrUrl, 
+        customQuestions,
+        maxRegistrations: formData.maxRegistrations ? parseInt(formData.maxRegistrations, 10) : undefined,
+        minTeamSize: formData.minTeamSize ? parseInt(formData.minTeamSize, 10) : undefined,
+        maxTeamSize: formData.maxTeamSize ? parseInt(formData.maxTeamSize, 10) : undefined,
+      }),
     });
 
     if (res.status === 401) {

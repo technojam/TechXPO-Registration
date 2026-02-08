@@ -191,7 +191,9 @@ export default function EditEvent({ params }: { params: Promise<{ id: string }> 
         imageUrl,
         paymentQrUrl,
         customQuestions,
-        maxRegistrations: formData.maxRegistrations ? parseInt(formData.maxRegistrations) : undefined,
+        maxRegistrations: formData.maxRegistrations ? parseInt(formData.maxRegistrations, 10) : undefined,
+        minTeamSize: formData.minTeamSize ? parseInt(formData.minTeamSize, 10) : undefined,
+        maxTeamSize: formData.maxTeamSize ? parseInt(formData.maxTeamSize, 10) : undefined,
       }),
     });
 

@@ -34,6 +34,9 @@ interface Event {
   isTeamEvent?: boolean;
   minTeamSize?: number;
   maxTeamSize?: number;
+  maxRegistrations?: number;
+  registrationCount?: number;
+  registrations?: any[];
 }
 
 export default function EventDetails({ params }: { params: Promise<{ id: string }> }) {
@@ -61,9 +64,16 @@ export default function EventDetails({ params }: { params: Promise<{ id: string 
   useEffect(() => {
     const fetchEvent = async () => {
       try {
-        const res = await fetch(`/api/events/${id}`);
+        const res = await fetch(`/api/events/${id}`, {
+          cache: 'no-store',
+        });
         if (res.ok) {
           const data = await res.json();
+          
+          // If registrationCount is not provided but registrations array exists, calculate it
+          if (data.registrationCount === undefined && data.registrations) {
+            data.registrationCount = data.registrations.length;
+          }
           setEvent(data);
           if (data.isTeamEvent) {
             const minSize = Number(data.minTeamSize) || 1;
@@ -396,6 +406,11 @@ export default function EventDetails({ params }: { params: Promise<{ id: string 
               <div className="bg-yellow-900/30 border border-yellow-700 rounded-lg p-6 text-center">
                 <h3 className="text-xl font-bold text-yellow-400 mb-2">Registrations Paused</h3>
                 <p className="text-yellow-200/80">Registration for this event is currently paused. Please check back later.</p>
+              </div>
+            ) : (event.maxRegistrations && event.registrationCount !== undefined && Number(event.registrationCount) >= Number(event.maxRegistrations)) ? (
+              <div className="bg-red-900/30 border border-red-700 rounded-lg p-6 text-center">
+                <h3 className="text-xl font-bold text-red-400 mb-2">Registrations Closed</h3>
+                <p className="text-red-200/80">This event has reached its maximum capacity ({event.maxRegistrations} registrations). Registration is now closed.</p>
               </div>
             ) : (
               <>
